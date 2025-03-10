@@ -1,62 +1,33 @@
-let btn = document.querySelector(".fetch-user");
-let url = "https://randomuser.me/api/";
-let userContainer = document.querySelector("#user-container");
+document.addEventListener('DOMContentLoaded', function() {
+    const userContainer = document.getElementById('user-container');
+    const fetchButton = document.getElementById('fetch-user');
 
-btn.addEventListener("click", function(e) {
-    e.preventDefault();
+    fetchButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        fetch('https://randomuser.me/api/')
+            .then(function(resp) {
+                return resp.json();
+            })
+            .then(function(data) {
+                let user = data.results[0];
+                console.log("User Data:", user);
 
-    console.log("Pulsante cliccato, avvio richiesta API...");
+                let userCard = `
+                    <div class="user-card">
+                        <img src="${user.picture.large}" alt="user photo">
+                        <h2>${user.name.title} ${user.name.first} ${user.name.last}</h2>
+                        <p><strong>Gender:</strong> ${user.gender}</p>
+                        <p><strong>Address:</strong> ${user.location.street.number} ${user.location.street.name}, ${user.location.city}, ${user.location.country}</p>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Phone:</strong> ${user.phone}</p>
+                    </div>
+                `;
 
-    // Mostra un messaggio di caricamento
-    userContainer.textContent = "Caricamento in corso...";
-
-    fetch(url)
-        .then(function(resp) {
-            if (!resp.ok) {
-                throw new Error("Errore nella richiesta: " + resp.status);
-            }
-            console.log("Risposta API ricevuta:", resp);
-            return resp.json();
-        })
-        .then(function(data) {
-            console.log("Dati utente ricevuti:", data);
-
-            if (!data || !data.results || data.results.length === 0) {
-                throw new Error("Nessun dato utente trovato");
-            }
-
-            let user = data.results[0];
-            let address = user.location.street.number + " " +
-                         user.location.street.name + ", " +
-                         user.location.city + ", " +
-                         user.location.state + ", " +
-                         user.location.postcode;
-
-            // Pulisci il contenitore
-            userContainer.textContent = "";
-
-            // Crea e aggiunge elementi
-            function aggiungiTesto(testo) {
-                let p = document.createElement("p");
-                p.textContent = testo;
-                userContainer.appendChild(p);
-            }
-
-            aggiungiTesto("Nome: " + user.name.first + " " + user.name.last);
-            aggiungiTesto("Sesso: " + user.gender);
-            aggiungiTesto("Indirizzo: " + address);
-            aggiungiTesto("Email: " + user.email);
-            aggiungiTesto("Telefono: " + user.phone);
-            aggiungiTesto("Registrato il: " + new Date(user.registered.date).toLocaleDateString());
-        })
-        .catch(function(err) {
-            console.error("Errore durante la richiesta:", err);
-
-            // Messaggio di errore dettagliato
-            if (err.message.includes("Failed to fetch")) {
-                userContainer.textContent = "Errore di rete: impossibile connettersi all'API. Verifica la connessione Internet.";
-            } else {
-                userContainer.textContent = "Errore: " + err.message;
-            }
-        });
+                userContainer.innerHTML = userCard;
+            })
+            .catch(function(err) {
+                console.log("Errore nella richiesta:", err);
+                userContainer.textContent = "Si è verificato un errore. Riprova più tardi.";
+            });
+    });
 });
